@@ -14,7 +14,7 @@ if [ -d python-for-zork ] ; then
 else
     echo "====" >&2
     echo "Warning: Failed to find:'python-for-zork/'" >&2
-    echo "Have you installed the Python venv for NZUT?" >&2
+    echo "Have you installed the Python venv for Zorks Illustrated?" >&2
     echo "====" >&2
 fi
 

@@ -11,7 +11,7 @@ cd prog-langs \
     && ./CREATE-PYTHON-VENV.sh \
     && cd ..
 
-./PIP-INSTALL-FOR-NZUT.sh
+./PIP-INSTALL-FOR-ZORK.sh
 
 
 cd cli-tools \

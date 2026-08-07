@@ -1,14 +1,14 @@
 #!/bin/bash
 
 
-if [ ! -d python-for-nzut ] ; then
+if [ ! -d python-for-zork ] ; then
     echo "----"
-    echo "Creating 'python-for-nzut/'"
+    echo "Creating 'python-for-zork/'"
     echo "----"
-    python -m venv python-for-nzut
+    python -m venv python-for-zork
 else
     echo "----"
-    echo "Python venv 'python-for-nzut/' already exists"
+    echo "Python venv 'python-for-zork/' already exists"
     echo "----"
 fi
 
