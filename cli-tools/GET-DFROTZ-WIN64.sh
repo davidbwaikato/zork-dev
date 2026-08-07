@@ -8,10 +8,10 @@ else
     echo "Already downloaded Windows binary dfrotz.zip"
 fi
 
-if [ ! -f dfrotz/dfrotz.exe ] ; then
-    unzip -d dfrotz dfrotz.zip
+if [ ! -f dfrotz-win64/dfrotz.exe ] ; then
+    unzip -d dfrotz-win64 dfrotz.zip
 else
-    echo "Already unzipped zip as dfrotz/"
+    echo "Already unzipped zip as dfrotz-win64/"
 fi
 
 
