@@ -22,7 +22,7 @@ if [ -d node-v24 ] ; then
 
     cd node-v24  \
 	&& export PATH="$PWD:$PATH" \
-	&& cd ../.. 
+	&& cd .. 
     echo "  Added NodeJS (v24) to PATH"
 else
     echo "====" >&2
@@ -31,14 +31,5 @@ else
 fi
 
 echo ""
-
-
-#if [ -d node-v24.18.0-win-x64 ] ; then
-#    export PATH="$PWD/node-v24.18.0-win-x64:$PATH"
-#    echo "Updated PATH to include node-v24"
-#else
-#    echo "Warning: Failed to find NodeJS" >&2
-#fi
-
 
 

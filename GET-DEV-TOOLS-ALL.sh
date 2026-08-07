@@ -3,6 +3,7 @@ set -euo pipefail
 
 
 cd prog-langs \
+    && ./GET-ZILF-WIN64.sh \
     && ./GET-NODEJS-WIN64.sh \
     && cd ..
 
