@@ -9,14 +9,16 @@ cd prog-langs \
 
 
 cd prog-langs \
-    && ./CREATE-PYTHON-VENV.sh \
+    && ./GET-VENV-PYTHON.sh \
+    && ./PIP-INSTALL-PYTORCH.sh \
     && cd ..
 
-./PIP-INSTALL-FOR-ZORK.sh
 
 
 cd cli-tools \
     && ./GET-DFROTZ-WIN64.sh \
+    && ./GET-COMFYUI.sh \
+    && ./PIP-INSTALL-FOR-COMFYUI.sh \
     && cd ..
 
 
