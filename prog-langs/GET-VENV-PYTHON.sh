@@ -21,7 +21,7 @@ python_full_version=3.12.13
 
 PYTHON_DIR="portable-python-$python_main_version"
 
-source ./_python_envs.bash
+source ../_set_core_envs.bash
 
 # 1. Determine target filename and URL based on OS and Architecture
 if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
@@ -69,7 +69,7 @@ else
 fi
 
 # 5. Create Virtual Environment using the Standalone Python
-# ($VENV_DIR set in _python_envs.bash)
+# ($VENV_DIR set in ../_set_core_envs.bash)
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "[+] Creating virtual environment in '$VENV_DIR' using Portable Python $python_main_version..."
