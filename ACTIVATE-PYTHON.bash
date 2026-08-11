@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Source env definition script relative to prog-langs/
-source "${SCRIPT_DIR}/prog-langs/_python_envs.bash"
+source "${SCRIPT_DIR}/_set_core_envs.bash"
 
 need_to_activate_venv=1
 
@@ -33,6 +33,12 @@ if [ "$need_to_activate_venv" = "1" ] ; then
 
         echo "[+] Sourcing virtual environment: ${ACTIVATE_SCRIPT}"
         source "${ACTIVATE_SCRIPT}"
+
+
+	# Fix the double parentheses string prompt caused by upstream bug
+	# in Python 3.12 (specifically CPython issue #132361).
+	PS1="${PS1//\(\(${VENV_DIR}\) \)/(${VENV_DIR})}"
+	
     else
         echo "====" >&2
         echo "Warning: Failed to find: '${FULL_VENV_DIR}/'" >&2
@@ -44,3 +50,4 @@ else
     echo "  ${VIRTUAL_ENV}"
 fi
 
+set +e

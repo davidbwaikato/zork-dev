@@ -1,6 +1,6 @@
 
 
-STORED_CWD="${PWD}"
+STORED_CWD_CT="${PWD}"
 
 # Determine the absolute directory where this script resides
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -8,8 +8,6 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 cd "${SCRIPT_DIR}"
 
 source ../_set_core_envs.bash
-
-OS="$(uname -s)"
 
 if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then    
 
@@ -26,5 +24,5 @@ else
 fi
 
 
-cd "${STORED_CWD}"
+cd "${STORED_CWD_CT}"
 

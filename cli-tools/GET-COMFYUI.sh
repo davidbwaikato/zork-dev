@@ -1,15 +1,16 @@
 #!/bin/bash
 
+comfyui_version=0.22.0
 
-if [ ! -f ComfyUI-0.30.2.tar.gz ] ; then
-    curl -L --output=ComfyUI-0.30.2.tar.gz "https://github.com/Comfy-Org/ComfyUI/archive/refs/tags/v0.30.2.tar.gz"
-
+if [ ! -f ComfyUI-$comfyui_version.tar.gz ] ; then
+    curl -L --output=ComfyUI-${comfyui_version}.tar.gz "https://github.com/Comfy-Org/ComfyUI/archive/refs/tags/v${comfyui_version}.tar.gz"
 else
-    echo "Already downloaded ComfyUI-0.30.2.tar.gz"
+    echo "Already downloaded ComfyUI-${comfyui_version}.tar.gz"
 fi
 
+
 if [ ! -d ComfyUI ] ; then
-    tar xvzf ComfyUI-0.30.2.tar.gz && mv ComfyUI-0.30.2 ComfyUI
+    tar xvzf ComfyUI-${comfyui_version}.tar.gz && mv ComfyUI-${comfyui_version} ComfyUI
     
 else
     echo "Already untarred ComfyUI"
@@ -17,7 +18,7 @@ fi
 
 
 echo "===="
-echo "No run:"
+echo "Now run:"
 echo "  ./PIP-INSTALL-FOR-COMFYUI.sh"
 echo "===="
 

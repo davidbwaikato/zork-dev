@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+cd "${SCRIPT_DIR}"
 
 cd prog-langs \
     && ./GET-ZILF-WIN64.sh \
@@ -19,6 +22,7 @@ cd cli-tools \
     && ./GET-DFROTZ-WIN64.sh \
     && ./GET-COMFYUI.sh \
     && ./PIP-INSTALL-FOR-COMFYUI.sh \
+    && ./DOWNLOAD-MODELS-FOR-COMFYUI.sh \
     && cd ..
 
 

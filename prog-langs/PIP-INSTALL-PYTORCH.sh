@@ -60,7 +60,12 @@ elif command -v nvidia-smi &> /dev/null; then
         fi
     fi
 
-    PYTORCH_CMD="pip install torch torchvision torchaudio --index-url $_PYTORCH_INDEX_URL"
+    if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
+	echo "**** Detected Windows OS, installing PyTorch matched exactly to comfyui_exact_requirements_win64.txt"
+	PYTORCH_CMD="pip install torch==2.12.0+cu130 torchvision==0.27.0+cu130 torchaudio==2.11.0+cu130 --index-url https://download.pytorch.org/whl/cu130"
+    else
+	PYTORCH_CMD="pip install torch torchvision torchaudio --index-url $_PYTORCH_INDEX_URL"
+    fi
 
 else
     echo "  [!] No NVIDIA GPU or driver found. Falling back to CPU-only PyTorch."

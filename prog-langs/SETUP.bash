@@ -1,12 +1,12 @@
 
-STORED_CWD="${PWD}"
+STORED_CWD_PL="${PWD}"
 
 # Determine the absolute directory where this script resides
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 cd "${SCRIPT_DIR}"
 
-source _python_envs.bash
+source ../_set_core_envs.bash
 
 
 if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
@@ -17,17 +17,6 @@ if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]
     else
 	echo "Warning: Failed to find Zilf CLI tools" >&2
     fi
-    
-    
-    #if [ -d "${VENV_DIR} ] ; then
-#	echo "  Activating 'python-for-zork'"
-#	source ./python-for-zork/Scripts/activate
-    #else
-#	echo "====" >&2
-#	echo "Warning: Failed to find:'${VENV_DIR}/'" >&2
-#	echo "Have you installed the Python venv for Zorks Illustrated?" >&2
-#	echo "====" >&2
-#    fi
     
     if [ -d node-v24 ] ; then
 	
@@ -62,4 +51,4 @@ else
     fi
 fi
 
-cd "{$STORED_CWD}"
+cd "${STORED_CWD_PL}"
