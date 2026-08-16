@@ -58,8 +58,7 @@ fi
 
 if [ $had_error = 0 ] ; then
     echo "=== Installing Hugging Face CLI with HF Transfer support for faster downloads ==="
-    pip install huggingface_hub hf-xet \
-	&& pip install diffusers accelerate
+    pip install huggingface_hub hf-xet 
 
     if [ $? != 0 ] ; then
 	had_error=1
