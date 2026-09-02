@@ -69,7 +69,7 @@ else
 fi
 
 # 5. Create Virtual Environment using the Standalone Python
-# ($VENV_DIR set in ../_set_core_envs.bash)
+# (uses $VENV_DIR set in ../_set_core_envs.bash)
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "[+] Creating virtual environment in '$VENV_DIR' using Portable Python $python_main_version..."
@@ -84,11 +84,20 @@ source ../ACTIVATE-PYTHON.bash
 echo "[+] Upgrading pip..."
 python -m pip install --upgrade pip
 
-echo ""
-echo "----"
-echo "Now run:"
-echo "   ./PIP-INSTALL-PYTORCH.sh"
-echo "----"
-echo ""
+if [ $VENV_DIR = "python-for-zork" ] ; then
+    echo ""
+    echo "----"
+    echo "Now run:"
+    echo "   ./PIP-INSTALL-PYTORCH.sh"
+    echo "----"
+    echo ""
+elif [ $VENV_DIR = "python-for-stableaudio" ] ; then
+    echo ""
+    echo "----"
+    echo "Now run:"
+    echo "   VENV_DIR="python-for-stableaudio" ./PIP-INSTALL-STABLEAUDIO.sh"
+    echo "----"
+    echo ""
+fi
 
 

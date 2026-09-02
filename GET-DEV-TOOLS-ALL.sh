@@ -17,14 +17,21 @@ cd prog-langs \
     && cd ..
 
 
+cd prog-langs \
+    && VENV_DIR="python-for-stableaudio" ./GET-VENV-PYTHON.sh \
+    && VENV_DIR="python-for-stableaudio" ./PIP-INSTALL-STLABLEAUDIO.sh \
+    && cd ..
+
+
 
 cd cli-tools \
     && ./GET-DFROTZ-WIN64.sh \
+    && ./GET-LLAMA-CPP.sh \
+    && ./GET-LLAMA-CPP-MODEL.sh \
     && ./GET-COMFYUI.sh \
     && ./PIP-INSTALL-FOR-COMFYUI.sh \
     && ./DOWNLOAD-MODELS-FOR-COMFYUI.sh \
     && cd ..
-
 
 
 
