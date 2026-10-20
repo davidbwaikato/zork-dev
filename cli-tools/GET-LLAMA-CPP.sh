@@ -1,9 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source "${SCRIPT_DIR}/../_set_core_envs.bash"
 source "${SCRIPT_DIR}/_llama_cpp_env.bash"
+LLAMA_INSTALL_MODE="${ZORKS_LLAMA_CPP_INSTALL_MODE:-auto}"
+case "$LLAMA_INSTALL_MODE" in
+  auto|binary|source) ;;
+  *) printf 'Unsupported ZORKS_LLAMA_CPP_INSTALL_MODE: %s\n' "$LLAMA_INSTALL_MODE" >&2; exit 2 ;;
+esac
+if [[ "$LLAMA_INSTALL_MODE" == source ]]; then
+  exec "$SCRIPT_DIR/BUILD-LLAMA-CPP.sh"
+fi
+llama_source_fallback() {
+  printf 'The prebuilt llama.cpp server cannot run on this Linux host; building the pinned CPU server locally.\n' >&2
+  exec "$SCRIPT_DIR/BUILD-LLAMA-CPP.sh"
+}
 
 case "${ARCH}" in
     x86_64|amd64) NORMALIZED_ARCH="x64" ;;
@@ -46,17 +58,18 @@ PARTIAL_PATH="${ARCHIVE_PATH}.part"
 
 mkdir -p "${LLAMA_CPP_DOWNLOAD_DIR}"
 
-if [ -f "${LLAMA_CPP_SERVER_PATH}" ] ; then
-    echo "Already installed llama.cpp ${LLAMA_CPP_BUILD}:"
-    echo "  ${LLAMA_CPP_INSTALL_DIR}"
-    "${LLAMA_CPP_SERVER_PATH}" --version
-    exit 0
+if [ -f "${LLAMA_CPP_SERVER_PATH}" ]; then
+    if "${LLAMA_CPP_SERVER_PATH}" --version; then
+        printf 'Existing llama.cpp server is runnable: %s\n' "$LLAMA_CPP_SERVER_PATH"
+        exit 0
+    fi
+    if [[ "$OS" == Linux && "$LLAMA_INSTALL_MODE" == auto ]]; then llama_source_fallback; fi
+    printf 'The existing llama.cpp server failed its runtime check. Installation has not succeeded.\n' >&2
+    exit 1
 fi
-
-if [ -e "${LLAMA_CPP_INSTALL_DIR}" ] ; then
-    echo "The llama.cpp installation directory exists but does not contain the expected server:" >&2
-    echo "  ${LLAMA_CPP_SERVER_PATH}" >&2
-    echo "Move or remove '${LLAMA_CPP_INSTALL_DIR}' and run this script again." >&2
+if [ -e "${LLAMA_CPP_INSTALL_DIR}" ]; then
+    if [[ "$OS" == Linux && "$LLAMA_INSTALL_MODE" == auto ]]; then llama_source_fallback; fi
+    printf 'Incomplete llama.cpp directory: %s. Move it aside and retry.\n' "$LLAMA_CPP_INSTALL_DIR" >&2
     exit 1
 fi
 
@@ -117,6 +130,16 @@ fi
 chmod +x "${STAGED_SERVER}" 2>/dev/null || true
 PACKAGE_DIR="$(dirname "${STAGED_SERVER}")"
 
+if ! "$STAGED_SERVER" --version; then
+    if [[ "$OS" == Linux && "$LLAMA_INSTALL_MODE" == auto ]]; then
+        cleanup
+        trap - EXIT
+        llama_source_fallback
+    fi
+    printf 'The downloaded llama.cpp server failed its runtime check. It was not installed.\n' >&2
+    exit 1
+fi
+
 # Git Bash on Windows can reject renaming a populated extracted directory even
 # when the source and destination are on the same drive. Copying the package
 # contents into a freshly created destination is reliable on Windows and keeps
@@ -133,8 +156,9 @@ if [ ! -f "${LLAMA_CPP_SERVER_PATH}" ]; then
 fi
 
 chmod +x "${LLAMA_CPP_SERVER_PATH}" 2>/dev/null || true
+"$LLAMA_CPP_SERVER_PATH" --version
 INSTALL_IN_PROGRESS=0
 
-echo "Installed llama.cpp ${LLAMA_CPP_BUILD}:"
+echo "Installed and verified llama.cpp ${LLAMA_CPP_BUILD}:"
 echo "  ${LLAMA_CPP_INSTALL_DIR}"
 "${LLAMA_CPP_SERVER_PATH}" --version

@@ -1,54 +1,16 @@
-
-STORED_CWD_PL="${PWD}"
-
-# Determine the absolute directory where this script resides
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
-cd "${SCRIPT_DIR}"
-
-source ../_set_core_envs.bash
-
-
-if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
-    
-    if [ -d zilf-win64 ] ; then
-	export PATH="$PWD/zilf-win64/bin:$PATH"
-	echo "Updated PATH to include Zilf CLI tools"
-    else
-	echo "Warning: Failed to find Zilf CLI tools" >&2
-    fi
-    
-    if [ -d node-v24 ] ; then
-	
-	cd node-v24  \
-	    && export PATH="$PWD:$PATH" \
-	    && cd .. 
-	echo "  Added NodeJS (v24) to PATH"
-    else
-	echo "====" >&2
-	echo "Warning: Failed to find:node-v24'" >&2
-	echo "====" >&2
-    fi
-    
-    echo ""
-elif [[ "$OS" == "Darwin" ]]; then
-    echo ""
-    echo "!!!! No current setup code implemented for Mac"
-    echo "!!!! Is it possible to install 'dfrotz' using brew?"
-    echo "!!!! If needing to recompile ZIL source, is it possible to install 'dotnet' using brew?"
-    echo ""
-else
-    ## e.g., Linux
-    if [ -d zilf-source ] ; then
-	export PATH="${SCRIPT_DIR}/zilf-source/bin/Release/net10.0:$PATH"
-	echo "Updated PATH to include 'zilf' binary"
-    fi
-    
-    if [ -d node-v24.14.1-linux-x64 ] ; then
-	export PATH="${SCRIPT_DIR}/node-v24.14.1-linux-x64/bin:$PATH"
-	export NODE_PATH="${SCRIPT_DIR}/node-v24.14.1-linux-x64/lib/node_modules"
-	echo "Updated PATH (and set NODE_PATH) to include NodeJS"
-    fi
+#!/usr/bin/env bash
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  printf 'Source this file: source %q\n' "$0" >&2; exit 1
 fi
-
-cd "${STORED_CWD_PL}"
+ZORKS_PL_SETUP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$ZORKS_PL_SETUP_DIR/ACTIVATE-NODEJS.bash" || return 1
+ZORKS_PL_ZILF_HOME="$ZORKS_PL_SETUP_DIR/installed/zilf-$ZORKS_ZILF_VERSION-$ZORKS_DEV_OS-$ZORKS_DEV_ARCH"
+# Include legacy installations when overlaying an existing Windows checkout.
+for ZORKS_PL_ZILF_BIN in "$ZORKS_PL_ZILF_HOME/bin" "$ZORKS_PL_ZILF_HOME" "$ZORKS_PL_SETUP_DIR/zilf-win64/bin"; do
+  if [[ -x "$ZORKS_PL_ZILF_BIN/zilf" || -x "$ZORKS_PL_ZILF_BIN/zilf.exe" ]]; then
+    zorks_dev_prepend_path "$ZORKS_PL_ZILF_BIN"
+    export ZILF_HOME="$(cd -- "$ZORKS_PL_ZILF_BIN/.." && pwd -P)"
+    break
+  fi
+done
+unset ZORKS_PL_SETUP_DIR ZORKS_PL_ZILF_HOME ZORKS_PL_ZILF_BIN

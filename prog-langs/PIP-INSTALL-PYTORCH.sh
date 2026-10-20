@@ -1,83 +1,56 @@
-#!/bin/bash
-set -e
-
-# Script to determine if PyTorch with GPU support is available
-# If it is, then it installs the highest compatible version
-
-#
-# It also sets the variable $_PYTORCH_INDEX_URL
-# => source this file if you want to have this variable
-#    to use in other pip install commands
-#
-_PYTORCH_INDEX_URL=
-
-echo "= Auto-Detecting System & Hardware for PyTorch ="
-
-# 1. Check Operating System
-OS="$(uname -s)"
-ARCH="$(uname -m)"
-
-PYTORCH_CMD=""
-
-if [[ "$OS" == "Darwin" ]]; then
-    echo "  [+] macOS detected ($ARCH). Using Metal (MPS) default PyTorch builds."
-    PYTORCH_CMD="pip install torch torchvision torchaudio"
-
-elif command -v nvidia-smi &> /dev/null; then
-    echo "  [+] NVIDIA GPU detected via nvidia-smi."
-
-    # Extract CUDA version from nvidia-smi output
-    CUDA_VER=$(nvidia-smi | sed -n 's/.*CUDA Version: \([0-9]*\.[0-9]*\).*/\1/p' | head -n 1)
-
-    if [[ -z "$CUDA_VER" ]]; then
-        echo "  [!] Could not parse CUDA version string. Defaulting to CUDA 12.1 index."
-        _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu121"
-    else
-        echo "  [+] Highest supported CUDA Version: $CUDA_VER"
-
-        # Split major and minor versions
-        CUDA_MAJOR=$(echo "$CUDA_VER" | cut -d. -f1)
-        CUDA_MINOR=$(echo "$CUDA_VER" | cut -d. -f2)
-
-        # Cascading checks from highest available PyTorch index to lowest
-        if [[ "$CUDA_MAJOR" -gt 13 ]] || { [[ "$CUDA_MAJOR" -eq 13 ]] && [[ "$CUDA_MINOR" -ge 2 ]]; }; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu132"
-        elif [[ "$CUDA_MAJOR" -eq 13 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu130"
-        elif [[ "$CUDA_MAJOR" -eq 12 ]] && [[ "$CUDA_MINOR" -ge 8 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu128"
-        elif [[ "$CUDA_MAJOR" -eq 12 ]] && [[ "$CUDA_MINOR" -ge 6 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu126"
-        elif [[ "$CUDA_MAJOR" -eq 12 ]] && [[ "$CUDA_MINOR" -ge 4 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu124"
-        elif [[ "$CUDA_MAJOR" -eq 12 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu121"
-        elif [[ "$CUDA_MAJOR" -eq 11 ]] && [[ "$CUDA_MINOR" -ge 8 ]]; then
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu118"
-        else
-            echo "  [!] CUDA version is below 11.8 or unrecognized. Defaulting to CUDA 12.1."
-            _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cu121"
-        fi
-    fi
-
-    if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
-	echo "**** Detected Windows OS, installing PyTorch matched exactly to comfyui_exact_requirements_win64.txt"
-	PYTORCH_CMD="pip install torch==2.12.0+cu130 torchvision==0.27.0+cu130 torchaudio==2.11.0+cu130 --index-url https://download.pytorch.org/whl/cu130"
-    else
-	PYTORCH_CMD="pip install torch torchvision torchaudio --index-url $_PYTORCH_INDEX_URL"
-    fi
-
-else
-    echo "  [!] No NVIDIA GPU or driver found. Falling back to CPU-only PyTorch."
-    _PYTORCH_INDEX_URL="https://download.pytorch.org/whl/cpu"
-    PYTORCH_CMD="pip install torch torchvision torchaudio --index-url $_PYTORCH_INDEX_URL"
+#!/usr/bin/env bash
+# Run this script (do not source); it never changes the calling shell.
+set -euo pipefail
+ZORKS_TORCH_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$ZORKS_TORCH_DIR/../versions.env"
+source "$ZORKS_TORCH_DIR/_common.bash"
+zorks_dev_detect_host
+ZORKS_TORCH_PY="$(zorks_dev_python_executable "$(cd -- "$ZORKS_TORCH_DIR/.." && pwd -P)")"
+[[ -x "$ZORKS_TORCH_PY" ]] || zorks_dev_die 'Run prog-langs/INSTALL-PYTHON.sh first'
+# Standalone Windows calls also honour the complete measured environment.
+# Stable Audio always keeps its independent venv and version family.
+if [[ "${ZORKS_TORCH_PROFILE:-}" != stableaudio ]]; then
+  zorks_dev_resolve_comfyui_profile
+  if [[ "$ZORKS_DEV_COMFYUI_PROFILE" == windows-exact ]]; then
+    exec "$ZORKS_TORCH_DIR/../cli-tools/INSTALL-WINDOWS-COMFYUI-SNAPSHOT.sh"
+  fi
 fi
-
-# 2. Execute PyTorch Installation
-
-echo "===="
-source ../ACTIVATE-PYTHON.bash
-echo "===="
-
-echo "  [+] Executing: $PYTORCH_CMD"
-$PYTORCH_CMD
+ZORKS_TORCH_SELECTION="${ZORKS_TORCH_BACKEND:-auto}"
+if [[ "$ZORKS_TORCH_SELECTION" == auto ]]; then
+  ZORKS_TORCH_SELECTION=cpu
+  if [[ "$ZORKS_DEV_OS" == darwin ]]; then
+    ZORKS_TORCH_SELECTION=mps
+  elif command -v nvidia-smi >/dev/null 2>&1; then
+    ZORKS_TORCH_CUDA="$(nvidia-smi 2>/dev/null | sed -n 's/.*CUDA Version: \([0-9]*\.[0-9]*\).*/\1/p' | head -n 1)" || ZORKS_TORCH_CUDA=''
+    if [[ -n "$ZORKS_TORCH_CUDA" ]]; then
+      ZORKS_TORCH_MAJOR="${ZORKS_TORCH_CUDA%%.*}"; ZORKS_TORCH_MINOR="${ZORKS_TORCH_CUDA#*.}"
+      if (( ZORKS_TORCH_MAJOR >= 13 )); then ZORKS_TORCH_SELECTION=cu130
+      elif (( ZORKS_TORCH_MAJOR == 12 && ZORKS_TORCH_MINOR >= 8 )); then ZORKS_TORCH_SELECTION=cu128
+      elif (( ZORKS_TORCH_MAJOR == 12 && ZORKS_TORCH_MINOR >= 6 )); then ZORKS_TORCH_SELECTION=cu126
+      fi
+    fi
+  fi
+fi
+# Let pip select wheels/dependencies compatible with the running Python from
+# the chosen backend index. ComfyUI then constrains these installed versions.
+ZORKS_TORCH_ARGS=(torch torchvision torchaudio)
+case "$ZORKS_TORCH_SELECTION" in
+  cpu) [[ "$ZORKS_DEV_OS" == darwin ]] || ZORKS_TORCH_ARGS+=(--index-url https://download.pytorch.org/whl/cpu) ;;
+  mps) [[ "$ZORKS_DEV_OS" == darwin ]] || zorks_dev_die 'MPS requires macOS' ;;
+  cu126|cu128|cu130)
+    [[ "$ZORKS_DEV_OS" != darwin ]] || zorks_dev_die 'CUDA wheels are not available on macOS'
+    ZORKS_TORCH_ARGS+=(--index-url "https://download.pytorch.org/whl/$ZORKS_TORCH_SELECTION") ;;
+  *) zorks_dev_die "Unsupported ZORKS_TORCH_BACKEND: $ZORKS_TORCH_SELECTION" ;;
+esac
+# Stable Audio may request an independent version family and index.
+if [[ "${ZORKS_TORCH_PROFILE:-}" == stableaudio ]]; then
+  ZORKS_TORCH_ARGS=(torch==2.7.1 torchaudio==2.7.1)
+  case "$ZORKS_TORCH_SELECTION" in
+    cu130|cu128) ZORKS_TORCH_ARGS+=(--index-url https://download.pytorch.org/whl/cu128) ;;
+    cu126) ZORKS_TORCH_ARGS+=(--index-url https://download.pytorch.org/whl/cu126) ;;
+    cpu) [[ "$ZORKS_DEV_OS" == darwin ]] || ZORKS_TORCH_ARGS+=(--index-url https://download.pytorch.org/whl/cpu) ;;
+  esac
+fi
+printf 'Installing PyTorch backend: %s\n' "$ZORKS_TORCH_SELECTION"
+"$ZORKS_TORCH_PY" -m pip install "${ZORKS_TORCH_ARGS[@]}"
+"$ZORKS_TORCH_PY" -c 'import torch; print("PyTorch:", torch.__version__); print("CUDA available:", torch.cuda.is_available()); print("MPS available:", bool(getattr(torch.backends, "mps", None) and torch.backends.mps.is_available()))'

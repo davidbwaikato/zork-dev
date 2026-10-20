@@ -1,16 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-source ../ACTIVATE-PYTHON.bash
 
 # Determine the absolute directory where this script resides
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+source "$SCRIPT_DIR/../prog-langs/ACTIVATE-PYTHON.bash"
 
 if [ -z "${HF_TOKEN:-}" ] ; then
     echo "===="
     echo "** Consider setting HF_TOKEN environment variable to make downloading models from Hugging Face faster"
     echo "===="
-    sleep 5
 fi
 
 export HF_XET_HIGH_PERFORMANCE=1
@@ -107,9 +107,12 @@ if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]
 fi
 
 
-cat "${COMFYUI_MODELS_DIR}/extra_model_paths.yaml.in" \
-    | sed "s#@CLI_TOOLS_HOME@#${CLI_TOOLS_HOME}#g" \
-	  > "${COMFYUI_MODELS_DIR}/extra_model_paths.yaml"
-
-
-
+# Python handles ampersands, quotes and spaces in checkout paths literally.
+python - "$CLI_TOOLS_HOME" "$COMFYUI_MODELS_DIR" <<'PYCONFIG'
+from pathlib import Path
+import sys
+home, models = sys.argv[1:]
+models = Path(models)
+template = (models / "extra_model_paths.yaml.in").read_text()
+(models / "extra_model_paths.yaml").write_text(template.replace("@CLI_TOOLS_HOME@", home))
+PYCONFIG

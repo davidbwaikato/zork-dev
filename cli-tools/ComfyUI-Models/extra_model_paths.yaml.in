@@ -1,0 +1,47 @@
+stability_matrix:
+  checkpoints: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/StableDiffusion
+  diffusers: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Diffusers
+  loras: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Lora
+    @CLI_TOOLS_HOME@/ComfyUI-Models/LyCORIS
+  clip: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/TextEncoders
+  clip_vision: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/ClipVision
+  embeddings: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Embeddings
+  vae: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/VAE
+  vae_approx: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/ApproxVAE
+  controlnet: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/ControlNet
+    @CLI_TOOLS_HOME@/ComfyUI-Models/T2IAdapter
+  gligen: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/GLIGEN
+  upscale_models: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/ESRGAN
+    @CLI_TOOLS_HOME@/ComfyUI-Models/RealESRGAN
+    @CLI_TOOLS_HOME@/ComfyUI-Models/SwinIR
+  hypernetworks: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Hypernetwork
+  ipadapter: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/IpAdapter
+    @CLI_TOOLS_HOME@/ComfyUI-Models/IpAdapters15
+    @CLI_TOOLS_HOME@/ComfyUI-Models/IpAdaptersXl
+  prompt_expansion: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/PromptExpansion
+  ultralytics: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Ultralytics
+  ultralytics_bbox: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Ultralytics/bbox
+  ultralytics_segm: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Ultralytics/segm
+  sams: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/Sams
+  diffusion_models: |-
+    @CLI_TOOLS_HOME@/ComfyUI-Models/DiffusionModels
+
+

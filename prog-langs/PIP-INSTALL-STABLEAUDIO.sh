@@ -1,51 +1,15 @@
-#!/bin/bash
-set -e
-
-echo "===="
-source ../ACTIVATE-PYTHON.bash
-echo "===="
-
-##./PIP-INSTALL-PYTORCH.sh
-
-python -m pip install --upgrade pip setuptools wheel
-
-python -m pip install \
-  torch==2.7.1 \
-  torchaudio==2.7.1 \
-  --index-url https://download.pytorch.org/whl/cu128
-
-# Getting the following istalled correctly on Windows is reported to be quite difficult
-# It's not needed if using the small-sfx model, so skipping for now
-###python -m pip install flash-attn  
-
-python -m pip install \
-  "stable-audio-3 @ git+https://github.com/Stability-AI/stable-audio-3.git"
-
-
-python -m pip install imageio-ffmpeg
-
-hf auth login
-
-
-echo ""
-echo "===="
-echo "To access the Stable Audio 3 model, accept the terms and conditions for the gated model at:"
-echo "  https://huggingface.co/stabilityai/stable-audio-3-small-sfx"
-echo "  https://huggingface.co/stabilityai/stable-audio-3-medium"
-
-echo ""
-echo "Note: It's possible that by accepting the terms to one of the models, acceess is then granted"
-echo "      to their other models"
-
-# The following variants don't (at the time of writing) appear to be gated
-#echo "  https://huggingface.co/stabilityai/stable-audio-3-small-sfx-base"
-#echo "  https://huggingface.co/stabilityai/stable-audio-3-medium-base"
-
-
-# The following autoencoders, which get used in the pipeline, are already public
-#SAME-S
-#SAME-L
-
-echo "===="
-echo ""
-
+#!/usr/bin/env bash
+set -euo pipefail
+# Keep incompatible audio and illustration dependencies in separate venvs.
+export VENV_DIR="${VENV_DIR:-python-for-stableaudio}"
+ZORKS_AUDIO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$ZORKS_AUDIO_DIR/../versions.env"
+source "$ZORKS_AUDIO_DIR/_common.bash"
+zorks_dev_detect_host
+ZORKS_AUDIO_PY="$(zorks_dev_python_executable "$(cd -- "$ZORKS_AUDIO_DIR/.." && pwd -P)")"
+[[ -x "$ZORKS_AUDIO_PY" ]] || zorks_dev_die 'Install the Stable Audio Python environment first (see README.md)'
+ZORKS_TORCH_PROFILE=stableaudio "$ZORKS_AUDIO_DIR/PIP-INSTALL-PYTORCH.sh"
+"$ZORKS_AUDIO_PY" -m pip install --upgrade pip setuptools wheel
+"$ZORKS_AUDIO_PY" -m pip install 'stable-audio-3 @ git+https://github.com/Stability-AI/stable-audio-3.git' imageio-ffmpeg
+"$ZORKS_AUDIO_PY" -m pip check
+printf 'Stable Audio installed. For gated weights, accept the model terms on Hugging Face and supply HF_TOKEN or run hf auth login separately.\n'

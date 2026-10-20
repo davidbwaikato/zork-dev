@@ -1,0 +1,5 @@
+# Lightweight utilities shared by content-preparation scripts.
+# ComfyUI and Stable Audio dependencies are installed by their own scripts.
+imageio-ffmpeg==0.6.0
+huggingface_hub
+hf-xet

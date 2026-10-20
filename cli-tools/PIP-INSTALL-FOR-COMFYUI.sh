@@ -1,77 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
-
-OS="$(uname -s)"
-
-source ../ACTIVATE-PYTHON.bash
-
-# Determine the absolute directory where this script resides
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
-cd "${SCRIPT_DIR}"
-
-
-had_error=0
-
-# Install ComfyUI Dependencies
-echo "=== Installing requirements for CompfyUI ==="
-
-if [ -f "ComfyUI/requirements.txt" ] ; then
-
-    if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
-	echo "**** Detected Windows OS, switching to comfyUI_exact_requirements_win64.txt"
-	echo "!!!! Assumes cu130 drivers for CUDA !!!!" 
-	COMFYUI_CMD="pip install -r comfyUI_exact_requirements_win64.txt"
-    else	
-	COMFYUI_CMD="pip install -r ComfyUI/requirements.txt"
-    fi
-    
-    echo "  [+] Executing: $COMFYUI_CMD"
-    $COMFYUI_CMD
-
-    if [ $? != 0 ] ; then
-	had_error=1
-    fi
-else
-    echo "Error: Failed to find ComfyUI/requirements.txt" 1>&2
-    had_error=1
+ZORKS_COMFY_PIP_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$ZORKS_COMFY_PIP_DIR/../versions.env"
+source "$ZORKS_COMFY_PIP_DIR/../prog-langs/_common.bash"
+zorks_dev_detect_host
+ZORKS_COMFY_PY="$(zorks_dev_python_executable "$(cd -- "$ZORKS_COMFY_PIP_DIR/.." && pwd -P)")"
+[[ -x "$ZORKS_COMFY_PY" ]] || zorks_dev_die 'Install the project Python environment first'
+[[ -f "$ZORKS_COMFY_PIP_DIR/ComfyUI/requirements.txt" ]] || zorks_dev_die 'Run cli-tools/INSTALL-COMFYUI.sh first'
+zorks_dev_resolve_comfyui_profile
+if [[ "$ZORKS_DEV_COMFYUI_PROFILE" == windows-exact ]]; then
+  # No generic torch installation or unpinned requirements pass may precede or
+  # follow this full snapshot replay.
+  "$ZORKS_COMFY_PIP_DIR/INSTALL-WINDOWS-COMFYUI-SNAPSHOT.sh"
+  printf 'Windows ComfyUI snapshot is ready. Download models with cli-tools/DOWNLOAD-MODELS-FOR-COMFYUI.sh\n'
+  exit 0
 fi
-
-
-if [ $had_error = 0 ] ; then
-
-    if [[ "$OS" == "MINGW"* ]] || [[ "$OS" == "MSYS"* ]] || [[ "$OS" == "CYGWIN"* ]]; then
-	echo "**** Detected Windows OS, skipping explicit pip instal shaders"
-	echo "!!!! => Should already be installed from comfyui_exact_requirements_win64.txt"
-    else
-	echo ""
-	echo "=== Installing Shader support for ComfyUI ==="
-	pip install PyOpenGL PyOpenGL-accelerate glfw
-	
-	if [ $? != 0 ] ; then
-	    had_error=1
-	fi
-    fi
-else
-    echo "Warning: Did not install Shader support for ComfyUI due to earlier error"    
-fi
-
-if [ $had_error = 0 ] ; then
-    echo "=== Installing Hugging Face CLI with HF Transfer support for faster downloads ==="
-    pip install huggingface_hub hf-xet 
-
-    if [ $? != 0 ] ; then
-	had_error=1
-    fi
-fi
-
-if [ $had_error = 0 ] ; then
-    echo "===="
-    echo "Now run:"
-    echo "  ./DOWNLOAD-MODELS-FOR-COMFYUI.sh"
-    echo "===="
-else
-    had_error=1
-fi
-
-exit $had_error
+"$ZORKS_COMFY_PIP_DIR/../prog-langs/PIP-INSTALL-PYTORCH.sh"
+# Constrain the requirements pass so it cannot silently replace the selected
+# CPU/CUDA/MPS torch family with a different one from the default package index.
+ZORKS_COMFY_CONSTRAINTS="$(mktemp "$ZORKS_COMFY_PIP_DIR/.torch-constraints.XXXXXX")"
+trap 'rm -f -- "$ZORKS_COMFY_CONSTRAINTS"' EXIT
+"$ZORKS_COMFY_PY" -m pip freeze | awk '/^(torch|torchvision|torchaudio)==/' > "$ZORKS_COMFY_CONSTRAINTS"
+"$ZORKS_COMFY_PY" -m pip install -c "$ZORKS_COMFY_CONSTRAINTS" -r "$ZORKS_COMFY_PIP_DIR/ComfyUI/requirements.txt"
+"$ZORKS_COMFY_PY" -m pip install PyOpenGL glfw huggingface_hub hf-xet
+"$ZORKS_COMFY_PY" -m pip check
+printf 'ComfyUI dependencies installed. Download models with cli-tools/DOWNLOAD-MODELS-FOR-COMFYUI.sh\n'

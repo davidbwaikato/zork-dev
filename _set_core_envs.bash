@@ -1,10 +1,5 @@
-
+#!/usr/bin/env bash
+# Compatibility variables consumed by older parent-project scripts.
 OS="$(uname -s)"
 ARCH="$(uname -m)"
-
-if [ -z ${VENV_DIR:-} ] ; then
-    VENV_DIR="python-for-zork"
-fi
-
-
-
+VENV_DIR="${VENV_DIR:-python-for-zork}"

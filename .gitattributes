@@ -1,7 +1,10 @@
-*.sh        text eol=lf
-*.bash      text eol=lf
-*.py        text eol=lf
-
-*.bat       text eol=crlf
-*.cmd       text eol=crlf
-
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.zip binary
+*.gz binary
+*.xz binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
