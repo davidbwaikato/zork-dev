@@ -1,6 +1,9 @@
 .DS_Store
 Thumbs.db
 *~
+
+OBSOLETE/
+
 __pycache__/
 *.pyc
 prog-langs/downloads/*
